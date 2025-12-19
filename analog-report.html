@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Analog Communication Final Project Report</title>
+
+    <style>
+        @page {
+            margin: 1in;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            line-height: 1.6;
+            max-width: 8.5in;
+            margin: auto;
+            padding: 20px;
+            color: #000;
+            background: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24pt;
+        }
+
+        h2 {
+            font-size: 18pt;
+            margin-top: 30px;
+            border-bottom: 2px solid #000;
+        }
+
+        h3 {
+            font-size: 14pt;
+            margin-top: 20px;
+        }
+
+        h4 {
+            font-size: 12pt;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        p {
+            text-align: justify;
+            margin-bottom: 12px;
+        }
+
+        ul,
+        ol {
+            margin-left: 30px;
+        }
+
+        .info-box {
+            border: 1px solid #000;
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .code-block {
+            font-family: "Courier New", monospace;
+            background: #f8f8f8;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+
+        .figure {
+            text-align: center;
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+
+        .figure img {
+            max-width: 100%;
+            border: 1px solid #000;
+        }
+
+        .figure-caption {
+            font-size: 11pt;
+            font-style: italic;
+            margin-top: 8px;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Analog Communication Final Project Report</h1>
+
+    <div class="info-box">
+        <h3>Team Members:</h3>
+        <ul>
+            <li>Abdelrahman Sharaf (ID: 8708)</li>
+            <li>Mohammed Hatem (ID: 8995)</li>
+            <li>Mostafa Ahmed (ID: 8705)</li>
+            <li>Mostafa Mohammed (ID: 8577)</li>
+        </ul>
+    </div>
+
+    <h2>1. Introduction</h2>
+
+    <p>
+        This project investigates fundamental analog modulation techniques including
+        Double Sideband (DSB), Single Sideband (SSB), and Narrowband Frequency Modulation (NBFM).
+        MATLAB simulations are used to analyze modulation, demodulation, noise effects,
+        and synchronization errors.
+    </p>
+
+    <div class="page-break"></div>
+
+    <h2>2. Experiment 1: Double Sideband Modulation</h2>
+
+    <h3>2.1 Original Audio Signal</h3>
+
+    <p>
+        The original audio signal was recorded at a sampling frequency of 48 kHz.
+        This signal contains frequency components across the full audio spectrum.
+    </p>
+
+    <div class="figure">
+        <img src="original waveform.png" width="817" height="502" alt="Original signal time domain">
+        <div class="figure-caption">
+            Figure 1: Original audio signal in time domain
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144248.png" width="817" height="502" alt="Original signal spectrum">
+        <div class="figure-caption">
+            Figure 2: Spectrum of original audio signal (full bandwidth)
+        </div>
+    </div>
+
+    <h3>2.2 Filtered Message Signal</h3>
+
+    <p>
+        The original audio signal (Fs = 48 kHz) was low-pass filtered to limit the bandwidth
+        to 4 kHz.
+    </p>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144310.png" width="817" height="502" alt="Filtered signal time domain">
+        <div class="figure-caption">
+            Figure 3: Filtered audio signal in time domain (BW = 4 kHz)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144258.png" width="817" height="502" alt="Filtered signal spectrum">
+        <div class="figure-caption">
+            Figure 4: Spectrum of filtered audio signal
+        </div>
+    </div>
+
+    <h3>2.2 DSB-SC and DSB-TC Modulation</h3>
+
+    <p>
+        The carrier frequency was chosen as 100 kHz and the sampling frequency was increased
+        to 500 kHz using resampling.
+    </p>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144318.png" width="817" height="502" alt="DSB-SC Spectrum">
+        <div class="figure-caption">
+            Figure 5: Frequency spectrum of DSB-SC signal
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144327.png" width="817" height="502" alt="DSB-TC Spectrum">
+        <div class="figure-caption">
+            Figure 6: Frequency spectrum of DSB-TC signal showing carrier component
+        </div>
+    </div>
+
+    <h3>2.3 Envelope Detection</h3>
+
+    <div class="figure">
+        <img src="env_tc.png" width="817" height="502" alt="Envelope detection DSB-TC">
+        <div class="figure-caption">
+            Figure 7: Envelope detector output for DSB-TC
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="env_sc.png" width="817" height="502" alt="Envelope detection DSB-SC">
+        <div class="figure-caption">
+            Figure 8: Envelope detector output for DSB-SC (distorted)
+        </div>
+    </div>
+
+    <div class="info-box" style="background: #fffacd; border-left: 4px solid #ffa500;">
+        <p>
+            Envelope detection succeeds only for DSB-TC because the carrier component
+            preserves the envelope shape.
+        </p>
+    </div>
+
+    <h3>2.4 Coherent Detection with Noise</h3>
+
+    <div class="figure">
+        <img src="0db.png" width="817" height="502" alt="DSB SNR 0 dB waveform">
+        <div class="figure-caption">
+            Figure 9: Coherent detection waveform of DSB-SC at SNR = 0 dB (time domain)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144412.png" width="817" height="502" alt="DSB SNR 0 dB spectrum">
+        <div class="figure-caption">
+            Figure 10: Coherent detection spectrum of DSB-SC at SNR = 0 dB (frequency domain)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="10db.png" width="817" height="502" alt="DSB SNR 10 dB waveform">
+        <div class="figure-caption">
+            Figure 11: Coherent detection waveform of DSB-SC at SNR = 10 dB (time domain)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144431.png" width="817" height="502" alt="DSB SNR 10 dB spectrum">
+        <div class="figure-caption">
+            Figure 12: Coherent detection spectrum of DSB-SC at SNR = 10 dB (frequency domain)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="30db.png" width="817" height="502" alt="DSB SNR 30 dB waveform">
+        <div class="figure-caption">
+            Figure 13: Coherent detection waveform of DSB-SC at SNR = 30 dB (time domain)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144459.png" width="817" height="502" alt="DSB SNR 30 dB spectrum">
+        <div class="figure-caption">
+            Figure 14: Coherent detection spectrum of DSB-SC at SNR = 30 dB (frequency domain)
+        </div>
+    </div>
+
+    <h3>2.5 Frequency and Phase Errors</h3>
+
+    <p>
+        When frequency and phase errors are introduced in the coherent detector, the recovered signal
+        becomes distorted. A frequency offset of 100 Hz and a phase error of 20° were applied to demonstrate
+        these effects.
+    </p>
+
+    <div class="code-block">
+        freq_err = dsb_sc .* cos(2*pi*100100*t_up);
+        phase_err = dsb_sc .* cos(2*pi*Fc*t_up + deg2rad(20));
+
+        sound(resample(freq_err,Fs,Fs_new),Fs); pause(3);
+        sound(resample(phase_err,Fs,Fs_new),Fs); pause(3);
+    </div>
+
+
+    <div class="page-break"></div>
+
+    <h2>3. Experiment 2: Single Sideband Modulation</h2>
+
+    <div class="figure">
+        <img src="Screenshot 2025-12-19 144525.png" width="817" height="502" alt="SSB Spectrum">
+        <div class="figure-caption">
+            Figure 17: Spectrum of SSB-LSB signal (ideal filter)
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="" width="817" height="502" alt="SSB received">
+        <div class="figure-caption">
+            Figure 18: Demodulated SSB signal using coherent detection
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>4. Experiment 3: Narrowband Frequency Modulation</h2>
+
+    <div class="figure">
+        <img src="nbfm_spectrum.png" width="817" height="502" alt="NBFM Spectrum">
+        <div class="figure-caption">
+            Figure 19: Spectrum of Narrowband FM signal
+        </div>
+    </div>
+
+    <div class="figure">
+        <img src="nbfm_demod.png" width="817" height="502" alt="NBFM demodulated">
+        <div class="figure-caption">
+            Figure 20: Demodulated NBFM signal using differentiator and envelope detector
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>5. Conclusions</h2>
+
+    <p>
+        The experiments demonstrate the trade-offs between bandwidth efficiency,
+        power efficiency, and receiver complexity across different analog modulation schemes.
+        DSB-TC allows simple envelope detection, SSB achieves superior bandwidth efficiency,
+        and NBFM provides improved noise immunity.
+    </p>
+
+    <p style="text-align:center; margin-top:50px;">
+        <strong>End of Report</strong>
+    </p>
+
+</body>
+
+</html>
