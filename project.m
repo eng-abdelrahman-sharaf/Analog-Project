@@ -11,6 +11,11 @@ if size(m,2)>1, m=m(:,1); end
 N = length(m);
 t = (0:N-1)/Fs;
 
+%% ================= ORIGINAL SIGNAL (TIME DOMAIN) =================
+figure; plot(t,m);
+title('Original Audio Signal (Time Domain)'); 
+xlabel('Time (s)'); ylabel('Amplitude');
+
 %% ================= ORIGINAL SPECTRUM =================
 M_f = fftshift(fft(m));
 f = (-N/2:N/2-1)*(Fs/N);
@@ -55,14 +60,23 @@ title('DSB-TC Spectrum'); xlabel('Hz');
 env_tc = abs(hilbert(dsb_tc));
 env_sc = abs(hilbert(dsb_sc));
 
-figure; plot(env_tc(1:2000));
-title('Envelope Detector Output (DSB-TC)');
-
-figure; plot(env_sc(1:2000));
-title('Envelope Detector Output (DSB-SC)');
-
 env_tc_ds = resample(env_tc,Fs,Fs_new);
 env_sc_ds = resample(env_sc,Fs,Fs_new);
+
+% Plot envelope waveforms
+t_env = (0:length(env_tc_ds)-1)/Fs;
+
+figure; 
+plot(t_env, env_tc_ds);
+title('Envelope Detector Output (DSB-TC)');
+xlabel('Time (s)'); ylabel('Amplitude');
+grid on;
+
+figure; 
+plot(t_env, env_sc_ds);
+title('Envelope Detector Output (DSB-SC)');
+xlabel('Time (s)'); ylabel('Amplitude');
+grid on;
 
 sound(env_tc_ds,Fs); pause(3);
 sound(env_sc_ds,Fs); pause(3);
@@ -76,7 +90,9 @@ for snr = SNRs
     demod_ds = resample(demod,Fs,Fs_new);
 
     % Time-domain plot
-    figure; plot(demod_ds(1:2000));
+    t_demod = (0:length(demod_ds)-1)/Fs;
+    figure; 
+    plot(t_demod, demod_ds);
     title(['DSB-SC Coherent Detection (Time), SNR = ',num2str(snr),' dB']);
 
     % Frequency-domain plot (REQUIRED)
