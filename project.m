@@ -1,7 +1,7 @@
 
 clc; clear; close all;
 
-%% AUDIO LOADING
+%% audio loading
 try
     [m, Fs] = audioread('eric');
 catch
@@ -11,18 +11,18 @@ if size(m,2)>1, m=m(:,1); end
 N = length(m);
 t = (0:N-1)/Fs;
 
-%% ORIGINAL SIGNAL (TIME DOMAIN)
+%% original signal (time domain)
 figure; plot(t,m);
 title('Original Audio Signal (Time Domain)'); 
 xlabel('Time (s)'); ylabel('Amplitude');
 
-%% ORIGINAL SPECTRUM
+%% original spectrum
 M_f = fftshift(fft(m));
 f = (-N/2:N/2-1)*(Fs/N);
 figure; plot(f,abs(M_f));
 title('Original Spectrum'); xlabel('Hz'); ylabel('|M(f)|');
 
-%% IDEAL LPF 4 kHz
+%% ideal lpf 4 khz
 BW = 4000;
 H = (abs(f)<=BW).';
 M_filt = M_f .* H;
@@ -35,15 +35,15 @@ figure; plot(t,m_filt);
 title('Filtered Signal (Time Domain)');
 sound(m_filt,Fs); pause(3);
 
-%% EXPERIMENT 1: DSB
+%% experiment 1: dsb
 Fc = 100e3;
 Fs_new = 5*Fc;
 
 m_up = resample(m_filt,Fs_new,Fs);
 t_up = (0:length(m_up)-1).'/Fs_new;
-A = 2*max(abs(m_up));   % DC bias for modulation index = 0.5
+A = 2*max(abs(m_up));   % dc bias for modulation index = 0.5
 
-% DSB-SC & DSB-TC
+% dsb-sc & dsb-tc
 dsb_sc = m_up .* cos(2*pi*Fc*t_up);
 dsb_tc = (A + m_up) .* cos(2*pi*Fc*t_up);
 
@@ -56,14 +56,14 @@ title('DSB-SC Spectrum'); xlabel('Hz');
 figure; plot(f2,abs(fftshift(fft(dsb_tc))));
 title('DSB-TC Spectrum'); xlabel('Hz');
 
-%% Envelope Detection
+%% envelope detection
 env_tc = abs(hilbert(dsb_tc));
 env_sc = abs(hilbert(dsb_sc));
 
 env_tc_ds = resample(env_tc,Fs,Fs_new);
 env_sc_ds = resample(env_sc,Fs,Fs_new);
 
-% Plot envelope waveforms
+% plot envelope waveforms
 t_env = (0:length(env_tc_ds)-1)/Fs;
 
 figure; 
@@ -81,7 +81,7 @@ grid on;
 sound(env_tc_ds,Fs); pause(3);
 sound(env_sc_ds,Fs); pause(3);
 
-%% Coherent Detection with Noise
+%% coherent detection with noise
 SNRs = [0 10 30];
 
 for snr = SNRs
@@ -89,13 +89,13 @@ for snr = SNRs
     demod = noisy .* cos(2*pi*Fc*t_up);
     demod_ds = resample(demod,Fs,Fs_new);
 
-    % Time-domain plot
+    % time-domain plot
     t_demod = (0:length(demod_ds)-1)/Fs;
     figure; 
     plot(t_demod, demod_ds);
     title(['DSB-SC Coherent Detection (Time), SNR = ',num2str(snr),' dB']);
 
-    % Frequency-domain plot (REQUIRED)
+    % frequency-domain plot (required)
     DEM_F = fftshift(fft(demod_ds));
     f_dem = (-length(demod_ds)/2:length(demod_ds)/2-1)*(Fs/length(demod_ds));
     figure; plot(f_dem,abs(DEM_F));
@@ -105,97 +105,145 @@ for snr = SNRs
     sound(demod_ds,Fs); pause(3);
 end
 
-%% Frequency & Phase Error
+%% frequency & phase error
 freq_err = dsb_sc .* cos(2*pi*100100*t_up);  % Carrier frequency offset (Beat frequency)
 phase_err = dsb_sc .* cos(2*pi*Fc*t_up + deg2rad(20));
 
 sound(resample(freq_err,Fs,Fs_new),Fs); pause(3);
 sound(resample(phase_err,Fs,Fs_new),Fs); pause(3);
 
-%% EXPERIMENT 2: SSB
+%% experiment 2: ssb
 DSB_F = fftshift(fft(dsb_sc));
 
-% Ideal LSB filter
-H_lsb = ((f2>=Fc-BW & f2<=Fc) | (f2<=-Fc+BW & f2>=-Fc)).';
+H_lsb = ((f2 >= Fc-BW & f2 <= Fc) | (f2 <= -Fc+BW & f2 >= -Fc)).';
 SSB_F = DSB_F .* H_lsb;
 
-figure; plot(f2,abs(SSB_F));
-title('Ideal SSB-LSB Spectrum'); xlabel('Hz');
+figure;
+plot(f2, abs(SSB_F));
+title('Ideal SSB-LSB Spectrum');
+xlabel('Frequency (Hz)');
 
 ssb = real(ifft(ifftshift(SSB_F)));
 
-%% SSB Coherent Detection (Ideal)
+%% ssb coherent detection
 demod_ssb = ssb .* cos(2*pi*Fc*t_up);
-demod_ssb_ds = resample(demod_ssb,Fs,Fs_new);
+demod_ssb_ds = resample(demod_ssb, Fs, Fs_new);
 
-figure; plot(demod_ssb_ds(1:2000));
-title('SSB Coherent Detection (Time)');
+t_ssb = (0:length(demod_ssb_ds)-1)/Fs;
+
+figure;
+plot(t_ssb, demod_ssb_ds);
+title('SSB Coherent Detection (Time Domain)');
+xlabel('Time (s)');
 
 SSB_DEM_F = fftshift(fft(demod_ssb_ds));
 f_ssb_dem = (-length(demod_ssb_ds)/2:length(demod_ssb_ds)/2-1)*(Fs/length(demod_ssb_ds));
-figure; plot(f_ssb_dem,abs(SSB_DEM_F));
-title('SSB Coherent Detection (Frequency)');
 
-sound(demod_ssb_ds,Fs); pause(3);
+figure;
+plot(f_ssb_dem, abs(SSB_DEM_F));
+title('SSB Coherent Detection (Frequency Domain)');
+xlabel('Frequency (Hz)');
 
-%% Practical Butterworth Filter
-[b,a] = butter(4, BW/(Fs_new/2));
-ssb_practical = filter(b,a,dsb_sc);
+sound(demod_ssb_ds, Fs); pause(3);
+
+%% practical butterworth ssb filter
+Wp = [(Fc-BW)/(Fs_new/2) Fc/(Fs_new/2)]; % normalized Passband edge frequencies
+[b,a] = butter(4, Wp, 'bandpass');
+ssb_practical = filter(b, a, dsb_sc);
 
 demod_p = ssb_practical .* cos(2*pi*Fc*t_up);
-demod_p_ds = resample(demod_p,Fs,Fs_new);
-sound(demod_p_ds,Fs); pause(3);
+demod_p_ds = resample(demod_p, Fs, Fs_new);
 
-%% SSB with Noise
+t_dem_p = (0:length(demod_p_ds)-1)/Fs;
+figure;
+plot(t_dem_p, demod_p_ds);
+title('Practical SSB Demodulated Signal (Time Domain)');
+xlabel('Time (s)'); ylabel('Amplitude');
+
+DEM_P_F = fftshift(fft(demod_p_ds));
+f_dem_p = (-length(demod_p_ds)/2:length(demod_p_ds)/2-1)*(Fs/length(demod_p_ds));
+figure;
+plot(f_dem_p, abs(DEM_P_F));
+title('Practical SSB Demodulated Spectrum');
+xlabel('Frequency (Hz)'); ylabel('|X(f)|');
+
+sound(demod_p_ds, Fs); pause(3);
+
+%% ssb with noise
 for snr = SNRs
-    noisy = add_awgn(ssb,snr);
+    noisy = add_awgn(ssb, snr);
     demod = noisy .* cos(2*pi*Fc*t_up);
-    demod_ds = resample(demod,Fs,Fs_new);
+    demod_ds = resample(demod, Fs, Fs_new);
 
-    figure; plot(demod_ds(1:2000));
-    title(['SSB Coherent Detection, SNR = ',num2str(snr),' dB']);
+    t_dem = (0:length(demod_ds)-1)/Fs;
+
+    figure;
+    plot(t_dem, demod_ds);
+    title(['SSB Coherent Detection, SNR = ', num2str(snr), ' dB']);
+    xlabel('Time (s)');
 
     DEM_F = fftshift(fft(demod_ds));
     f_dem = (-length(demod_ds)/2:length(demod_ds)/2-1)*(Fs/length(demod_ds));
-    figure; plot(f_dem,abs(DEM_F));
-    title(['SSB Spectrum After Demodulation, SNR = ',num2str(snr),' dB']);
 
-    sound(demod_ds,Fs); pause(3);
+    figure;
+    plot(f_dem, abs(DEM_F));
+    title(['SSB Spectrum After Demodulation, SNR = ', num2str(snr), ' dB']);
+    xlabel('Frequency (Hz)');
+
+    sound(demod_ds, Fs); pause(3);
 end
 
-%% SSB-TC + Envelope Detection
+%% ssb-tc + envelope detection
 ssb_tc = ssb + A*cos(2*pi*Fc*t_up);
 env_ssb = abs(hilbert(ssb_tc));
-env_ssb_ds = resample(env_ssb,Fs,Fs_new);
+env_ssb_ds = resample(env_ssb, Fs, Fs_new);
 
-figure; plot(env_ssb_ds(1:2000));
+t_env = (0:length(env_ssb_ds)-1)/Fs;
+
+figure;
+plot(t_env, env_ssb_ds);
 title('SSB-TC Envelope Detector Output');
+xlabel('Time (s)');
 
-sound(env_ssb_ds,Fs); pause(3);
+sound(env_ssb_ds, Fs); pause(3);
 
-%% EXPERIMENT 3: NBFM
-kp = 0.05;  
-% NBFM condition: beta = kp * max(|m(t)|) << 1
+%% experiment 3: nbfm
+kf = 0.05;  % Narrowband condition: beta << 1
 
 int_m = cumsum(m_up)/Fs_new;
-fm = cos(2*pi*Fc*t_up + kp*int_m);
+fm = cos(2*pi*Fc*t_up + 2 *pi * kf * int_m);
 
-figure; plot(f2,abs(fftshift(fft(fm))));
-title('NBFM Spectrum'); xlabel('Hz');
+figure;
+plot(f2, abs(fftshift(fft(fm))));
+title('NBFM Spectrum');
+xlabel('Frequency (Hz)');
 
-%% FM Demodulation
+%% correct nbfm demodulation
 fm_diff = diff(fm);                 % Differentiator
-fm_env = abs(hilbert(fm_diff));     % Envelope Detector
-fm_ds = resample(fm_env,Fs,Fs_new);
+fm_env = abs(hilbert(fm_diff));     % envelope detector
 
-figure; plot(fm_ds(1:2000));
-title('NBFM Demodulated Signal');
+fm_env = fm_env - mean(fm_env);     % remove dc
 
-sound(fm_ds,Fs);
+[b_fm, a_fm] = butter(4, BW/(Fs_new/2));
+fm_rec = filter(b_fm, a_fm, fm_env);
 
-%% LOCAL FUNCTION
-function y = add_awgn(x,SNRdB)
+fm_ds = resample(fm_rec, Fs, Fs_new);
+fm_ds = fm_ds / max(abs(fm_ds));    % normalize
+
+t_fm = (0:length(fm_ds)-1)/Fs;
+
+figure;
+plot(t_fm, fm_ds);
+title('NBFM Demodulated Signal (Time Domain)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+sound(fm_ds, Fs);
+
+%% local function
+function y = add_awgn(x, SNRdB)
     P = mean(x.^2);
     N = P / (10^(SNRdB/10));
-    y = x + sqrt(N)*randn(size(x));
+    y = x + sqrt(N) * randn(size(x));
 end
