@@ -209,37 +209,36 @@ sound(env_ssb_ds, Fs); pause(3);
 
 %% experiment 3: nbfm
 kf = 0.05;  % Narrowband condition: beta << 1
+Ac = 1;
 
-int_m = cumsum(m_up)/Fs_new;
-fm = cos(2*pi*Fc*t_up + 2 *pi * kf * int_m);
+m_integration = cumsum(m_up)/Fs_new;
 
-figure;
-plot(f2, abs(fftshift(fft(fm))));
+phi = 2*pi*kf * m_integration;
+
+NBFM = Ac * cos(2*pi * Fc * t_up + phi);
+
+figure; plot(f2/1e3, abs(fftshift(fft(NBFM))));
 title('NBFM Spectrum');
-xlabel('Frequency (Hz)');
+xlabel('Frequency (KHz)');
 
 %% correct nbfm demodulation
-fm_diff = diff(fm);                 % Differentiator
-fm_env = abs(hilbert(fm_diff));     % envelope detector
 
-fm_env = fm_env - mean(fm_env);     % remove dc
+NBFM_diff = diff(NBFM)*Fs_new;         % Differentiator
+NBFM_env = abs(hilbert(NBFM_diff));    % envelope detector
 
-[b_fm, a_fm] = butter(4, BW/(Fs_new/2));
-fm_rec = filter(b_fm, a_fm, fm_env);
+NBFM_env = NBFM_env - mean(NBFM_env);  % remove dc
 
-fm_ds = resample(fm_rec, Fs, Fs_new);
-fm_ds = fm_ds / max(abs(fm_ds));    % normalize
-
-t_fm = (0:length(fm_ds)-1)/Fs;
+NBFM_ds = resample(NBFM_env, Fs, Fs_new);
+t_ds = (0:length(NBFM_ds)-1)/Fs;
 
 figure;
-plot(t_fm, fm_ds);
+plot(t_ds, NBFM_ds);
 title('NBFM Demodulated Signal (Time Domain)');
-xlabel('Time (s)');
-ylabel('Amplitude');
+xlabel('Time (s)'); ylabel('Amplitude');
 grid on;
+ylim([-.16 .16]);
 
-sound(fm_ds, Fs);
+sound(NBFM_ds, Fs);
 
 %% local function
 function y = add_awgn(x, SNRdB)
